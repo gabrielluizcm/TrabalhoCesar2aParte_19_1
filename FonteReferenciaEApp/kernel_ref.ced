@@ -1,0 +1,109 @@
+
+
+;
+;******************************************************************************
+;
+;	KERNEL de Referência
+;
+;	versão: 2019.1.0
+;
+;	Áreas de memória
+;
+;	0000 - 007F		_BOOT
+;					Área de Boot
+;					Aqui deve ser colocado o código de inicializacao
+;
+;	0080 - 00DF		_SISTEMA
+;					Área de interface da APP com o KERNEL
+;
+;	0100 – 7FFF		_APP
+;					Programa de Aplicação (APP)
+;					Aqui devem ser colocadas as rotinas, variáveis e a pilha da aplicação.
+;
+;	8000 - FF7F		_KERNEL
+;					Área para colocar o boot, os TRATADORES DE INTERRUPÇÃO de tempo e de teclado.
+;					Aqui devem ser colocadas as rotinas e variáveis usadas pelos tratadores de interrupção.
+;
+;	FF80 - FFBF 	_IOAREA16
+;					Area de perifericos, acessada na base 16 bits
+;
+;	FFC0 - FFFF		_IOAREA08
+;					Area de perifericos, acessada na base 8 bits
+;					
+;******************************************************************************
+
+_BOOT:		equ	h0000		; boot (reset)
+_SISTEMA:	equ	h0080		; area das syscall
+_APP:		equ	h0100		; area da aplicacao
+_KERNEL:	equ	h8000		; area de Kernel
+_IOAREA16:	equ	hFF80		; area de perifericos, acessada na base 16 bits
+_IOAREA08:	equ	hFFC0		; area de perifericos, acessada na base 8 bits
+
+
+;
+;------------------------------------------------------------------------------
+;	Área reservada para os periféricos
+;------------------------------------------------------------------------------
+
+; Acesso em 16 bits
+		org	_IOAREA16
+		daw	[31]
+IVET:	dw	0			; Vetor de interrupção
+
+; Acesso em 8 bits
+		org	_IOAREA08
+		dab	[23]
+TIMDT:	db	0			; Registro de programação do timer
+INTS:	db	0			; INTERRUPT STATUS: IP x x x . x x IPStec IPStim
+INTE:	db	0			; INTERRUPT ENABLE: IE x x x . x x IEStec IEStim
+TECST:	db	0			; Status do teclado
+TECDT:	db	0			; Dado do teclado
+VISOR:	dab	[36]		; Portas de acesso ao visor
+
+
+;
+;==============================================================================
+;	Boot Startup
+;==============================================================================
+		org		_BOOT
+	
+;
+;	Coloque aqui seu código de inicialização
+;	Caso essa área não seja suficiente, utilize a área a partir de H8000
+;
+
+	
+;
+;==============================================================================
+;	Entrada das chamadas de kernel
+;	r5 -> indica a função
+;		0			-> 		BOOL(r0)	kbhit(void)
+;		1			-> 		CHAR(r0)	getchar(void)
+;		2			-> 		UNSIGNED SHORT(r0)	gettime(void)
+;		3			-> 		VOID	putchar(CHAR(r0); INT(r1))
+;		4			-> 		VOID	putmsg(CHAR*(r0); INT(r1))
+;		5			->		TIME(r0,r,r2)	getclock(void)
+;		6			->		CHAR(r0)	setclock(TIME(r0,r,r2))
+;==============================================================================
+	org	_SISTEMA
+	
+;
+;	Coloque aqui o início da interpretação de R5 e a chamada das funções do kernel
+;	Caso essa área não seja suficiente, utilize a área a partir de H8000
+;	
+
+
+;==============================================================================
+;	Area para o kernel
+;	Implementacao das funcoes do sistema
+;	Implementacao dos tratadores de interrupcao
+;==============================================================================
+	org	_KERNEL
+
+
+;
+;	Coloque aqui o restante do kernel e os tratadores de interrupção
+;	Aqui também devem estar as variáveis internas do kernel 
+;	
+
+	
