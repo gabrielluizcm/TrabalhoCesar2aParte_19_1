@@ -1,0 +1,162 @@
+ORG 0
+MOV #H81, INTE
+MOV #HC000, R6
+MOV #250, TIMDT
+MOV #vetorInterrupcao, 65470
+MOV #0, contagemInterrupcoes
+MOV #0, contagemGeral
+MOV #0, segundos
+MOV #0, minutos
+MOV #0, horas
+MOV #0, TECST
+MOV #0, INTS
+MOV #0, R0
+MOV #0, R1
+MOV #0, R2
+MOV #0, R3
+MOV #0, R4
+MOV #0, R5
+MOV #0, #horas
+MOV #0, #horas
+MOV #0, #horas
+JMP 256
+
+ORG 128
+CMP R5, #0
+BNE naoEKbHit
+JSR R7, kbHit
+
+naoEKbHit:
+CMP R5, #1
+BNE naoEGetChar
+JSR R7, getChar
+
+naoEGetChar:
+CMP R5, #2
+BNE naoEGetTime
+JSR R7, getTime
+
+naoEGetTime:
+CMP R5, #3
+BNE naoEPutChar
+JSR R7, putChar
+
+naoEPutChar:
+CMP R5, #4
+BNE naoEPutMsg
+JSR R7, putMsg
+
+naoEPutMsg:
+CMP R5, #5
+BNE naoEGetClock
+JSR R7, getClock
+
+naoEGetClock:
+CMP R5, #6
+BNE naoEValido
+JSR R7, setClock
+
+naoEValido:
+RTS R7
+
+ORG H8000
+
+kbHit:
+CMP #TECST, #128
+BNE naoHaTecla
+MOV #0, R0
+BR fimKbHit
+naoHaTecla:
+MOV #1, R0
+fimKbHit:
+RTS R7
+
+getChar:
+CMP TECST, #128
+BNE getChar
+MOV TECDT, R0
+MOV #0, TECST
+RTS R7
+
+getTime:
+MOV #contagemGeral, R0
+RTS R7
+
+putChar:
+AND #H00FF, R0
+CMP R1, #35
+BGT fimPutChar
+MOV R0, VISOR(R1)
+INC R1
+fimPutChar:
+RTS R7
+
+putMsg:
+DEC R0
+MOV R0, R2
+loopPutMsg:
+MOV (R2), R0
+AND #H00FF, R0
+CMP R0, #0
+BEQ fimPutMsg
+JSR R7, putChar
+CMP R1, #35
+BLE naoZeraR1
+MOV #0, R1
+naoZeraR1:
+INC R2
+BR loopPutMsg
+fimPutMsg:
+RTS R7
+
+getClock:
+MOV #horas, R0
+MOV #minutos, R1
+MOV #segundos, R2
+RTS R7
+
+setClock:
+CMP R0, #23
+BGT erroSetClock
+CMP R1, #60
+BGT erroSetClock
+CMP R2, #60
+BGT erroSetClock
+MOV R0, #horas
+MOV R1, #minutos
+MOV R2, #segundos
+MOV #0, R0
+BR fimSetClock
+erroSetClock:
+MOV #1, R0
+fimSetClock:
+RTS R7
+
+vetorInterrupcao:
+INC contagemInterrupcoes
+MOV contagemInterrupcoes, R0
+CMP contagemInterrupcoes, #4
+BLT fazNada
+INC segundos
+MOV #0, contagemInterrupcoes
+fazNada:
+RTI
+
+ORG HFFAE
+contagemGeral: DW 0
+contagemInterrupcoes: DW 0
+segundos: DW 0
+minutos: DW 0
+horas: DW 0
+
+ORG HFFBE
+IVET: DW 0
+
+ORG HFFC0
+DAB [23]
+TIMDT: DB 0
+INTS: DB 0
+INTE: DB 0
+TECST: DB 0
+TECDT: DB 0
+VISOR: DAB [36]
